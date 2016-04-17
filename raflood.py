@@ -9,7 +9,7 @@ import sys
 try:
     print sys.argv[3] #check if all arguments have been supplied
 except:
-    print 'usage:',sys.argv[0],' interface threads packets' #fail if not
+    print 'usage:',sys.argv[0],' interface thread-count packet-oount' #fail if not
     sys.exit(0)
 
 class RA_Flooder (threading.Thread): #worker class for threading
